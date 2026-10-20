@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EnglishLens · Camera Lab</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header><a class="brand" href="/"><span class="logo">E<span>↗</span></span>EnglishLens<span class="lab">CAMERA LAB</span></a><span class="local"><i></i> Chạy trên máy của bạn</span></header>
+<div class="layout">
+<aside>
+<div class="eyebrow">01 / KẾT NỐI</div><h2>Góc nhìn của bạn.</h2><p class="muted">Biến camera điện thoại thành một chiếc kính khám phá.</p>
+<div class="tabs"><button id="ipTab" class="selected">DroidCam Wi-Fi</button><button id="usbTab">Webcam</button></div>
+<form id="connectForm">
+<div id="ipFields"><label for="ip">IP trên điện thoại</label><input id="ip" placeholder="192.168.1.10" autocomplete="off" inputmode="decimal" required>
+<label for="port">Cổng DroidCam</label><input id="port" type="number" value="4747" min="1" max="65535" required>
+<p class="hint">Mở DroidCam trên điện thoại, nhập IP hiện tại. Hai thiết bị cần cùng Wi-Fi.</p></div>
+<div id="usbFields" hidden><label for="devices">Camera trên máy tính</label><select id="devices"><option value="">Camera mặc định</option></select><p class="hint">Hỗ trợ webcam và DroidCam Client đã cài trên Windows.</p></div>
+<button id="connect" class="primary" type="submit">Kết nối camera <span>↗</span></button>
+<button id="disconnect" class="secondary" type="button" disabled>Ngắt kết nối</button></form>
+<div class="divider"></div><div class="eyebrow">02 / NHẬN DIỆN</div>
+<label for="mode">Cách tìm vật thể</label><select id="mode"><option value="manual">Nhập nhãn · Grounding DINO</option><option value="auto">Tự tìm nhãn · RAM + DINO</option></select>
+<div id="labelFields"><label for="labels">Bạn muốn tìm gì?</label><textarea id="labels" rows="2" maxlength="500">person, phone, bottle, cup, book</textarea><p class="hint">Tên tiếng Anh, ngăn cách bằng dấu phẩy.</p></div>
+<label class="rangeLabel" for="threshold">Độ tin cậy tối thiểu <output id="thresholdValue">30%</output></label><input id="threshold" type="range" min="10" max="80" value="30">
+<button id="snapshot" class="primary" disabled>Chụp &amp; nhận diện</button>
+<button id="ai" class="secondary" disabled>Bật nhận diện liên tục</button>
+<p class="hint">Bấm Chụp để nhận diện một ảnh. Kết quả giữ nguyên đến lần chụp tiếp theo; camera vẫn chạy.</p>
+<div class="modelBox"><div><span>Grounding DINO</span><b id="dinoState">Đang kiểm tra</b></div><div><span>RAM</span><b id="ramState">Đang kiểm tra</b></div><div class="progress"><i id="ramProgress"></i></div><small id="downloadText"></small></div>
+</aside>
+<main>
+<div class="headline"><div><div class="eyebrow">NHÌN THẾ GIỚI. GỌI TÊN BẰNG TIẾNG ANH.</div><h1>Mỗi khung hình,<br>một điều mới.</h1></div><span class="sessionTag">LIVE EXPLORATION <span>↗</span></span></div>
+<div id="message" role="status" aria-live="polite">Nhập IP và cổng trên DroidCam để bắt đầu.</div>
+<section class="workspace">
+<div class="panel livePanel"><div class="panelHeader"><span><i id="liveDot"></i> CAMERA TRỰC TIẾP</span><span id="cameraState">Chưa kết nối</span></div>
+<div class="viewport" id="liveViewport"><video id="video" autoplay playsinline muted hidden></video><img id="ipStream" alt="Camera DroidCam trực tiếp" hidden>
+<div id="emptyLive" class="empty"><div class="viewfinder">＋</div><h3>Mở một góc nhìn mới</h3><p>Camera điện thoại sẽ xuất hiện ở đây.<br>Hình ảnh chỉ được xử lý trên máy tính này.</p></div></div>
+<div class="panelFooter"><span id="resolution">— × —</span><span id="cameraFps"></span><span>DROIDCAM / WEBCAM</span></div></div>
+<div class="panel resultPanel"><div class="panelHeader"><span><i class="accentDot"></i> KHUNG HÌNH AI</span><span id="aiState">Chưa bật</span></div>
+<div class="viewport"><canvas id="result" aria-label="Ảnh nhận diện. Bấm nhãn để chọn vật thể; có thể chọn bằng các nút từ bên dưới." hidden></canvas><div id="emptyResult" class="empty"><div class="scanIcon">⌗</div><h3>Nhìn. Nhận diện. Khám phá.</h3><p>Bấm Chụp &amp; nhận diện để xem<br>bounding box trên ảnh vừa chụp.</p></div></div>
+<div class="panelFooter"><span id="latency">Chưa có kết quả</span><span id="resultTime">ẢNH ĐÃ PHÂN TÍCH</span></div></div>
+</section>
+<section class="observations"><div class="sectionHeading"><h2>Trong khung hình <span id="count">00</span></h2><div><button id="showAll" class="textButton" hidden>Hiện tất cả ↗</button><button id="sample" class="textButton">Thử ảnh mẫu ↗</button><button id="save" class="textButton" disabled>Lưu ảnh ↓</button></div></div><div id="detections" class="detectionList"><p class="muted">Các vật thể nhận diện được sẽ xuất hiện ở đây.</p></div><div id="tags" class="tags"></div></section>
+<section id="wordPanel" class="wordPanel" aria-live="polite" hidden>
+<div class="wordHeader"><div><div class="eyebrow">TỪ VỰNG ĐÃ CHỌN</div><h2 id="wordTitle"></h2><span id="wordPhonetic"></span></div><button id="pronounce" class="wordPlay" disabled>Nghe phát âm ▶</button></div>
+<p id="wordConfidence" class="wordConfidence"></p>
+<p id="wordNote" class="muted"></p><div id="wordDefinitions"></div>
+<a href="https://dictionaryapi.dev/" target="_blank" rel="noopener noreferrer">Nguồn: Free Dictionary API · Định nghĩa tiếng Anh</a>
+</section>
+<footer><span>ENGLISHLENS / LOCAL VISION LAB</span><span>Camera mượt. AI theo nhịp xử lý thực tế.</span></footer>
+</main></div><script src="/app.js"></script></body></html>

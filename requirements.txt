@@ -1,0 +1,9 @@
+# Torch 2.5.1+cu121 and torchvision 0.20.1+cu121 inherited from diemdanh.
+transformers==4.44.2
+timm==0.4.12
+fairscale==0.4.13
+numpy==1.26.4
+huggingface-hub==0.36.0
+hf-xet
+scipy
+pillow

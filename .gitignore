@@ -1,0 +1,7 @@
+.venv/
+.venv-ram/
+.cache/
+models/
+outputs/
+__pycache__/
+vendor/
