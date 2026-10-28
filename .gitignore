@@ -1,5 +1,6 @@
 .venv/
 .venv-ram/
+.python/
 .cache/
 models/
 outputs/

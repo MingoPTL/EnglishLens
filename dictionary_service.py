@@ -4,6 +4,7 @@ import threading
 import time
 from urllib.parse import quote
 import requests
+from translation_service import translate_vi
 
 cache = {}
 lock = threading.Lock()
@@ -81,3 +82,44 @@ def audio(word):
         except (requests.RequestException, ValueError):
             continue
     return 503, {"error": "Không tải được audio cho từ này."}, "application/json"
+
+translation_cache = {}
+
+def vocabulary(word):
+    """Combine Vietnamese translation with a dictionary sense and its example."""
+    word = word.strip().lower()
+    if len(word) > 80 or not re.fullmatch(r"[a-z]+(?:[ '\-][a-z]+)*", word):
+        return 400, {"error": "Nhập từ hoặc cụm từ tiếng Anh (tối đa 80 ký tự)."}
+    result = {"word": word, "meaning": "", "definition": "", "example": "",
+              "phonetic": "", "warnings": [], "translationSource": "", "dictionarySource": ""}
+    with lock:
+        saved = translation_cache.get(word)
+    if saved and time.monotonic() - saved[0] < 86400:
+        result["meaning"] = saved[1]
+    else:
+        try:
+            translated = translate_vi(word)
+            if not translated:
+                raise ValueError('Argos returned an empty translation')
+            result["meaning"] = translated
+            with lock:
+                if len(translation_cache) >= 128:
+                    translation_cache.pop(next(iter(translation_cache)))
+                translation_cache[word] = time.monotonic(), result["meaning"]
+        except Exception:
+            result["warnings"].append("Chưa dịch được bằng Argos Translate. Kiểm tra cài đặt và chạy setup_argos.py rồi thử lại.")
+    if result["meaning"]:
+        result["translationSource"] = "Argos Translate"
+    status, entries = lookup(word)
+    if status == 200:
+        senses = [d for e in entries for m in e.get("meanings", []) for d in m.get("definitions", []) if d.get("definition")]
+        sense = next((d for d in senses if d.get("example")), senses[0] if senses else {})
+        result["definition"] = sense.get("definition", "")
+        result["example"] = sense.get("example", "")
+        result["phonetic"] = next((e["phonetic"] for e in entries if e.get("phonetic")), "") or next((p["text"] for e in entries for p in e.get("phonetics", []) if p.get("text")), "")
+        result["dictionarySource"] = "Free Dictionary API"
+        if not result["example"]:
+            result["warnings"].append("Từ điển chưa cung cấp câu ví dụ cho từ này.")
+    else:
+        result["warnings"].append("Chưa lấy được định nghĩa và ví dụ từ từ điển. Có thể thử Lấy lại API.")
+    return 200, result

@@ -7,3 +7,7 @@ huggingface-hub==0.36.0
 hf-xet
 scipy
 pillow
+requests>=2.32
+urllib3>=2.2
+
+argostranslate==1.9.6

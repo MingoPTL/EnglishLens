@@ -56,7 +56,7 @@ def main():
                     raise RuntimeError("Không tìm thấy môi trường Python của EnglishLens.")
                 with (output / f"server-{args.port}.log").open("ab") as log:
                     process = subprocess.Popen(
-                        [str(python), "-u", str(ROOT / "app.py"), "--port", str(args.port)],
+                        [str(python), "-X", "utf8", "-u", str(ROOT / "app.py"), "--port", str(args.port)],
                         cwd=ROOT, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
                         creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_BREAKAWAY_FROM_JOB,
                     )

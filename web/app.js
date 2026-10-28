@@ -4,6 +4,13 @@ let generation = 0, streamTimer = null, status = null, lastResult = null;
 let cameraGeneration = 0;
 let streamWanted = false;
 let takingPhoto = false;
+let mirrored = false;
+$("mirrorCamera").onclick = () => {
+  mirrored = !mirrored;
+  $("liveViewport").classList.toggle("mirrored", mirrored);
+  $("mirrorCamera").setAttribute("aria-pressed", String(mirrored));
+  $("mirrorCamera").textContent = "Lật ngang camera: " + (mirrored ? "Bật" : "Tắt");
+};
 const say = (text, error=false) => { $("message").textContent = text; $("message").classList.toggle("error", error); };
 async function api(path, body, raw=false) {
   const response = await fetch(path, {method: body === undefined ? "GET" : "POST",
@@ -15,6 +22,7 @@ async function api(path, body, raw=false) {
 }
 function ready() { return status?.models.dino && ($("mode").value === "manual" || status?.models.ram); }
 function controls() {
+  $("mirrorCamera").disabled = !connected;
   $("snapshot").disabled = !connected || !ready() || busy;
   $("snapshot").textContent = takingPhoto ? "Đang nhận diện ảnh…" : "Chụp & nhận diện";
   $("ai").disabled = !connected || !ready() || (busy && !active);
@@ -117,7 +125,9 @@ function capture() {
   if (!width || !height) throw new Error("Chưa có khung hình camera.");
   const scale = Math.min(1, 800 / Math.max(width,height));
   const canvas = document.createElement("canvas"); canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
-  canvas.getContext("2d").drawImage(input,0,0,canvas.width,canvas.height);
+  const context = canvas.getContext("2d");
+  if (mirrored) { context.translate(canvas.width, 0); context.scale(-1, 1); }
+  context.drawImage(input,0,0,canvas.width,canvas.height);
   return canvas;
 }
 let resultPhoto = null, selectedDetection = null, labelTargets = [];

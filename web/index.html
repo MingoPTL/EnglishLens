@@ -14,6 +14,7 @@
 <div id="usbFields" hidden><label for="devices">Camera trên máy tính</label><select id="devices"><option value="">Camera mặc định</option></select><p class="hint">Hỗ trợ webcam và DroidCam Client đã cài trên Windows.</p></div>
 <button id="connect" class="primary" type="submit">Kết nối camera <span>↗</span></button>
 <button id="disconnect" class="secondary" type="button" disabled>Ngắt kết nối</button></form>
+<button id="mirrorCamera" class="secondary" type="button" aria-pressed="false" disabled>Lật ngang camera: Tắt</button>
 <div class="divider"></div><div class="eyebrow">02 / NHẬN DIỆN</div>
 <label for="mode">Cách tìm vật thể</label><select id="mode"><option value="manual">Nhập nhãn · Grounding DINO</option><option value="auto">Tự tìm nhãn · RAM + DINO</option></select>
 <div id="labelFields"><label for="labels">Bạn muốn tìm gì?</label><textarea id="labels" rows="2" maxlength="500">person, phone, bottle, cup, book</textarea><p class="hint">Tên tiếng Anh, ngăn cách bằng dấu phẩy.</p></div>
@@ -41,6 +42,26 @@
 <p id="wordConfidence" class="wordConfidence"></p>
 <p id="wordNote" class="muted"></p><div id="wordDefinitions"></div>
 <a href="https://dictionaryapi.dev/" target="_blank" rel="noopener noreferrer">Nguồn: Free Dictionary API · Định nghĩa tiếng Anh</a>
+<button id="saveWord" class="primary" type="button">＋ Thêm vào bộ từ vựng</button>
+</section>
+<section class="vocabulary" aria-labelledby="vocabularyTitle">
+<div class="sectionHeading"><div><div class="eyebrow">03 / GHI NHỚ & ÔN TẬP</div><h2 id="vocabularyTitle">Bộ từ vựng của tôi <span id="vocabCount">0</span></h2></div><button id="startStudy" class="wordPlay" disabled>Học flashcard ↗</button></div>
+<p class="muted">Lưu từ từ ảnh nhận diện hoặc tự thêm bên dưới. Dữ liệu nằm trong trình duyệt này; xóa dữ liệu trang sẽ xóa bộ từ.</p>
+<p id="vocabMessage" role="status" aria-live="polite"></p>
+<form id="wordForm" class="wordForm">
+<div><label for="vocabWord">Từ / cụm từ tiếng Anh</label><input id="vocabWord" required maxlength="80" placeholder="Ví dụ: bottle"></div>
+<div><label for="vocabMeaning">Nghĩa / ghi chú tiếng Việt</label><input id="vocabMeaning" maxlength="1000" placeholder="Để trống để dịch bằng Argos"></div>
+<button class="wordPlay" type="submit" id="submitWord">Lưu từ</button><button class="textButton" id="cancelEdit" type="button" hidden>Hủy sửa</button>
+</form>
+<label for="vocabSearch">Tìm trong bộ từ</label><input id="vocabSearch" type="search" placeholder="Tìm từ hoặc nghĩa…">
+<div id="vocabList" class="vocabList"></div>
+<section id="studyPanel" class="studyPanel" aria-labelledby="studyTitle" hidden>
+<div class="sectionHeading"><h2 id="studyTitle">Ôn tập flashcard</h2><button id="closeStudy" class="textButton">Đóng ôn tập ✕</button></div>
+<p id="studyProgress" role="status" aria-live="polite"></p>
+<button id="flashcard" class="flashcard" aria-label="Lật thẻ để xem nghĩa"><span id="cardSide" class="eyebrow">TỪ TIẾNG ANH</span><strong id="cardWord"></strong><span id="cardMeaning"></span><small id="cardHint">Bấm thẻ hoặc nhấn Enter để lật</small></button>
+<div class="studyActions"><button id="cardSpeak" class="secondary">Nghe phát âm ▶</button><button id="cardAgain" class="secondary" disabled>Học lại</button><button id="cardKnown" class="primary" disabled>Đã nhớ ✓</button></div>
+<button id="restartStudy" class="wordPlay" hidden>Học lại toàn bộ ↻</button>
+</section>
 </section>
 <footer><span>ENGLISHLENS / LOCAL VISION LAB</span><span>Camera mượt. AI theo nhịp xử lý thực tế.</span></footer>
-</main></div><script src="/app.js"></script></body></html>
+</main></div><script src="/app.js"></script><script src="/vocabulary.js"></script></body></html>

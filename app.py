@@ -13,7 +13,7 @@ from urllib.parse import urlsplit, parse_qs
 import requests
 from PIL import Image, UnidentifiedImageError
 from engine import Engine, model_status
-from dictionary_service import lookup, audio
+from dictionary_service import lookup, audio, vocabulary
 
 ROOT = Path(__file__).resolve().parent
 engine = Engine()
@@ -186,6 +186,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_bytes(code, data, mime)
             else:
                 self.json(code, data)
+        elif path == "/api/vocabulary":
+            word = parse_qs(urlsplit(self.path).query).get("word", [""])[0]
+            code, data = vocabulary(word)
+            self.json(code, data)
         elif path == "/api/dictionary":
             word = parse_qs(urlsplit(self.path).query).get("word", [""])[0]
             code, data = lookup(word)
@@ -202,9 +206,9 @@ class Handler(BaseHTTPRequestHandler):
             self.stream_camera()
         elif path == "/api/sample":
             self.send_bytes(200, (ROOT / "vendor/recognize-anything/images/demo/demo1.jpg").read_bytes(), "image/jpeg")
-        elif path in ["/", "/app.js", "/style.css"]:
-            name = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css"}[path]
-            mime = {"/": "text/html", "/app.js": "text/javascript", "/style.css": "text/css"}[path]
+        elif path in ["/", "/app.js", "/vocabulary.js", "/style.css"]:
+            name = {"/": "index.html", "/app.js": "app.js", "/vocabulary.js": "vocabulary.js", "/style.css": "style.css"}[path]
+            mime = {"/": "text/html", "/app.js": "text/javascript", "/vocabulary.js": "text/javascript", "/style.css": "text/css"}[path]
             self.send_bytes(200, (ROOT / "web" / name).read_bytes(), mime + "; charset=utf-8")
         else:
             self.json(404, {"error": "Not found"})

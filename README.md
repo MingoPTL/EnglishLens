@@ -97,3 +97,48 @@ Bấm nhãn trên ảnh AI hoặc nút từ bên dưới để chỉ hiện boun
 Khi chọn một vật thể ở chế độ **Tự tìm nhãn**, bảng từ vựng hiển thị confidence RAM thực tế từ cùng lượt suy luận, ngưỡng riêng của nhãn và điểm Grounding DINO. Điểm RAM thuộc nhãn trong toàn ảnh; điểm DINO thuộc box được chọn. Chế độ nhập nhãn không chạy RAM. Nếu nhãn DINO giải mã không khớp chính xác nhãn RAM, ứng dụng báo không có điểm khớp thay vì gán điểm của nhãn khác.
 
 Chạy `.\.venv-ram\Scripts\python.exe -m unittest discover -s tests -v` để kiểm tra luồng MJPEG, ngắt/kết nối lại, xử lý khung hình chia nhỏ và so sánh FPS với cách lấy từng ảnh cũ. Bộ kiểm thử dùng camera giả lập 30 FPS trên localhost, không cần điện thoại, tải model hay Internet.
+
+## Bộ từ vựng và flashcard
+
+- Chọn một vật thể trong kết quả nhận diện, bấm **Thêm vào bộ từ vựng**. Ứng dụng dùng Argos Translate trên máy để dịch nghĩa tiếng Việt và Free Dictionary API để lấy định nghĩa, phiên âm, câu ví dụ. Có thể sửa nghĩa/ghi chú tiếng Việt sau đó.
+- Trong **Bộ từ vựng của tôi**, có thể tự thêm từ, tìm kiếm, sửa nghĩa, nghe phát âm hoặc xóa từ. Từ trùng được nhận biết không phân biệt chữ hoa/thường và khoảng trắng thừa.
+- Bấm **Học flashcard** để bắt đầu lượt học với thứ tự ngẫu nhiên. Bấm thẻ (hoặc Enter khi thẻ được chọn) để xem nghĩa. **Học lại** đưa thẻ về cuối lượt; **Đã nhớ** bỏ thẻ khỏi lượt hiện tại. Có thể học lại toàn bộ khi hoàn thành.
+- Bộ từ lưu trong localStorage của trình duyệt tại địa chỉ ứng dụng. Dùng cùng trình duyệt và địa chỉ `http://127.0.0.1:7860` để xem lại. Xóa dữ liệu trang hoặc dùng hồ sơ/trình duyệt khác sẽ không giữ cùng bộ từ. Tiến độ flashcard chỉ tính trong lượt học hiện tại.
+- Flashcard và ghi chú đã lưu dùng được khi mất mạng. Phát âm ưu tiên audio từ Free Dictionary API; khi audio thiếu hoặc lỗi, dùng giọng tiếng Anh của trình duyệt/hệ điều hành.
+
+## Lật ngang camera
+
+Sau khi kết nối DroidCam hoặc webcam, bấm **Lật ngang camera** để bật/tắt chế độ hình gương. Cả hình trực tiếp và ảnh chụp gửi AI đều được lật nên bounding box khớp với ảnh nhận diện. Kết quả đã chụp trước đó được giữ nguyên; ảnh mẫu không bị lật. Đây là lật hình ngang, không phải chuyển camera trước/sau của điện thoại (việc chuyển camera thực hiện trong DroidCam).
+
+## Kiểm thử giao diện mới
+
+Cần Node.js và Microsoft Edge. Khi máy chủ ứng dụng đang chạy, thực hiện:
+
+```powershell
+npm install --prefix .cache/ui-tests --no-audit --no-fund playwright
+node tests/vocabulary.browser.cjs
+```
+
+Kiểm thử dùng hồ sơ trình duyệt tạm, không sửa bộ từ đang dùng. Bao gồm lưu qua tải lại trang, chống trùng, sửa/xóa/tìm từ, thêm từ nhận diện, flashcard, pixel ảnh lật và bố cục di động. Ảnh kiểm tra giao diện nằm trong `outputs/vocabulary-desktop.png` và `outputs/vocabulary-mobile.png`.
+
+
+## Dịch nghĩa, câu ví dụ và phát âm khi lưu từ
+
+- Cả thêm từ thủ công và thêm từ từ ảnh đều gọi `/api/vocabulary?word=...`. Để trống ô nghĩa để tự dịch; nghĩa tự nhập được ưu tiên giữ lại.
+- Nghĩa tiếng Việt được dịch offline bằng [Argos Translate](https://argos-translate.readthedocs.io/en/latest/), model Anh–Việt lưu tại `models/argos`. Dịch máy có thể chưa đúng ngữ cảnh; bạn có thể chỉnh sửa nghĩa.
+- Định nghĩa, phiên âm và câu ví dụ lấy từ [Free Dictionary API](https://dictionaryapi.dev/). Ví dụ được chọn cùng định nghĩa tương ứng; nếu API không có ví dụ, ứng dụng báo rõ, không tự tạo câu rồi gán là dữ liệu API.
+- Nút **Nghe** trong bộ từ và flashcard ưu tiên `/api/pronunciation`; lỗi audio sẽ chuyển sang giọng trình duyệt. Nội dung nghĩa và ví dụ đã lưu vẫn xem được khi không có mạng; audio API cần Internet.
+- Với từ cũ hoặc cần cập nhật dữ liệu, bấm **Lấy lại API** tại từ đó. Nghĩa đã sửa thủ công được giữ nguyên. Dịch thành công được cache 24 giờ trong máy chủ để tránh dịch lại; khi lỗi vẫn lưu từ để bạn bổ sung hoặc thử lại sau.
+
+
+## Cài model Argos Translate
+
+Sau khi cài `requirements.txt`, chạy một lần (cần Internet để tải model):
+
+```powershell
+.\.venv-ram\Scripts\python.exe -X utf8 setup_argos.py
+```
+
+Các lần dịch sau chạy trên CPU tại máy, không gửi từ tới dịch vụ dịch thuật bên ngoài. Câu ví dụ và audio vẫn lấy từ Free Dictionary API nên cần Internet nếu chưa có cache. Từ đã lưu trước đây giữ nguyên nghĩa; dùng **Lấy lại API** để cập nhật bằng Argos, còn nghĩa tự sửa vẫn được giữ.
+
+Mặt trước flashcard hiển thị từ tiếng Anh. Khi lật, mặt sau chỉ hiển thị **nghĩa tiếng Việt và câu ví dụ**; không hiển thị từ tiếng Anh riêng, phiên âm hoặc định nghĩa tiếng Anh. Câu ví dụ giữ nguyên tiếng Anh do Dictionary API cung cấp.
