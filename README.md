@@ -141,4 +141,16 @@ Sau khi cài `requirements.txt`, chạy một lần (cần Internet để tải 
 
 Các lần dịch sau chạy trên CPU tại máy, không gửi từ tới dịch vụ dịch thuật bên ngoài. Câu ví dụ và audio vẫn lấy từ Free Dictionary API nên cần Internet nếu chưa có cache. Từ đã lưu trước đây giữ nguyên nghĩa; dùng **Lấy lại API** để cập nhật bằng Argos, còn nghĩa tự sửa vẫn được giữ.
 
+`requirements.txt` cố định CTranslate2 ở bản 4.4.0. Trên Windows với môi trường PyTorch 2.5.1+cu121 của project, bản CTranslate2 4.8.4 gây xung đột DLL cuDNN khi dịch rồi nhận diện, làm server thoát với lỗi `cudnnGetLibConfig`. Khi cập nhật từ bản cũ, chạy lại `pip install -r requirements.txt` bằng Python của `.venv-ram` và khởi động lại server.
+
+Máy có GPU CUDA và đã cài model Argos có thể kiểm tra cả hai thứ tự nạp thư viện (dịch trước hoặc nhận diện trước):
+
+```powershell
+$env:ENGLISHLENS_RUNTIME_TESTS = '1'
+.\.venv-ram\Scripts\python.exe -X utf8 -m unittest discover -s tests -v
+Remove-Item Env:ENGLISHLENS_RUNTIME_TESTS
+```
+
+Hai test tích hợp này mặc định được bỏ qua trên máy chưa có CUDA/model; các test còn lại không cần tải model.
+
 Mặt trước flashcard hiển thị từ tiếng Anh. Khi lật, mặt sau chỉ hiển thị **nghĩa tiếng Việt và câu ví dụ**; không hiển thị từ tiếng Anh riêng, phiên âm hoặc định nghĩa tiếng Anh. Câu ví dụ giữ nguyên tiếng Anh do Dictionary API cung cấp.

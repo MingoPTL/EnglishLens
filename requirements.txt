@@ -11,3 +11,5 @@ requests>=2.32
 urllib3>=2.2
 
 argostranslate==1.9.6
+# Avoid CTranslate2's cuDNN 9 DLL shadowing PyTorch's Windows CUDA libraries.
+ctranslate2==4.4.0
