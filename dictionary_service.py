@@ -41,13 +41,13 @@ audio_cache = {}
 def audio(word):
     from urllib.parse import urlsplit
     word = word.strip().lower()
-    status, entries = lookup(word)
-    if status != 200:
-        return status, entries, "application/json"
     with lock:
         saved = audio_cache.get(word)
         if saved:
             return 200, saved[0], saved[1]
+    status, entries = lookup(word)
+    if status != 200:
+        return status, entries, "application/json"
     urls = []
     for entry in entries:
         for phonetic in entry.get("phonetics", []):

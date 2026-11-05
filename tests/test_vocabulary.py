@@ -46,5 +46,11 @@ class VocabularyTests(unittest.TestCase):
         self.assertEqual(service.vocabulary('https://evil.test')[0], 400)
         get.assert_not_called()
 
+    @patch.object(service, 'lookup', side_effect=AssertionError('Cached audio must not call dictionary'))
+    def test_repeat_audio_skips_dictionary_even_when_offline(self, lookup):
+        with patch.dict(service.audio_cache, {'bottle': (b'audio bytes', 'audio/mpeg')}, clear=True):
+            self.assertEqual(service.audio(' Bottle '), (200, b'audio bytes', 'audio/mpeg'))
+        lookup.assert_not_called()
+
 if __name__ == '__main__':
     unittest.main()

@@ -158,11 +158,11 @@ class Handler(BaseHTTPRequestHandler):
         except (OSError, TimeoutError):
             pass
 
-    def send_bytes(self, status, data, content_type):
+    def send_bytes(self, status, data, content_type, cache_control="no-store"):
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(data)))
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", cache_control)
         self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
         try:
@@ -183,7 +183,7 @@ class Handler(BaseHTTPRequestHandler):
             word = parse_qs(urlsplit(self.path).query).get("word", [""])[0]
             code, data, mime = audio(word)
             if code == 200:
-                self.send_bytes(code, data, mime)
+                self.send_bytes(code, data, mime, "private, max-age=86400")
             else:
                 self.json(code, data)
         elif path == "/api/vocabulary":

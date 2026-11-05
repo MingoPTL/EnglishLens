@@ -127,7 +127,7 @@ Kiểm thử dùng hồ sơ trình duyệt tạm, không sửa bộ từ đang d
 - Cả thêm từ thủ công và thêm từ từ ảnh đều gọi `/api/vocabulary?word=...`. Để trống ô nghĩa để tự dịch; nghĩa tự nhập được ưu tiên giữ lại.
 - Nghĩa tiếng Việt được dịch offline bằng [Argos Translate](https://argos-translate.readthedocs.io/en/latest/), model Anh–Việt lưu tại `models/argos`. Dịch máy có thể chưa đúng ngữ cảnh; bạn có thể chỉnh sửa nghĩa.
 - Định nghĩa, phiên âm và câu ví dụ lấy từ [Free Dictionary API](https://dictionaryapi.dev/). Ví dụ được chọn cùng định nghĩa tương ứng; nếu API không có ví dụ, ứng dụng báo rõ, không tự tạo câu rồi gán là dữ liệu API.
-- Nút **Nghe** trong bộ từ và flashcard ưu tiên `/api/pronunciation`; lỗi audio sẽ chuyển sang giọng trình duyệt. Nội dung nghĩa và ví dụ đã lưu vẫn xem được khi không có mạng; audio API cần Internet.
+- Nút **Nghe** trong bộ từ và flashcard dùng lại âm thanh đã tải; thẻ hiện tại được tải trước âm thanh. Máy chủ trả audio từ bộ nhớ đệm trước khi tra từ điển và cho phép trình duyệt lưu audio 24 giờ. Lần tải đầu vẫn phụ thuộc Internet; lỗi audio sẽ chuyển sang giọng trình duyệt.
 - Với từ cũ hoặc cần cập nhật dữ liệu, bấm **Lấy lại API** tại từ đó. Nghĩa đã sửa thủ công được giữ nguyên. Dịch thành công được cache 24 giờ trong máy chủ để tránh dịch lại; khi lỗi vẫn lưu từ để bạn bổ sung hoặc thử lại sau.
 
 

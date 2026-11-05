@@ -23,6 +23,16 @@
     const b = document.createElement('button'); b.type = 'button'; b.className = 'textButton'; b.textContent = text; b.onclick = action; return b;
   }
   let wordAudio = null, audioSequence = 0;
+  const audioPool = new Map();
+  function preparedAudio(word) {
+    if (!audioPool.has(word)) {
+      const audio = new Audio('/api/pronunciation?word=' + encodeURIComponent(word));
+      audio.preload = 'auto';
+      audioPool.set(word, audio);
+      if (audioPool.size > 32) audioPool.delete(audioPool.keys().next().value);
+    }
+    return audioPool.get(word);
+  }
   const pending = new Set();
   function stopSpeech() {
     audioSequence++;
@@ -41,9 +51,10 @@
       speech.onerror = () => { if (token === audioSequence) notice('Không phát được giọng đọc.'); };
       speechSynthesis.speak(speech);
     };
-    const audio = new Audio('/api/pronunciation?word=' + encodeURIComponent(word)); wordAudio = audio;
+    const audio = preparedAudio(word); wordAudio = audio;
+    audio.currentTime = 0;
     let failed = false;
-    const fail = () => { if (!failed) { failed = true; fallback(); } };
+    const fail = () => { if (!failed) { failed = true; audioPool.delete(word); fallback(); } };
     audio.onerror = fail;
     try { await audio.play(); } catch { fail(); }
   }
@@ -159,6 +170,7 @@
     $('restartStudy').disabled = !words.length;
     $('studyProgress').textContent = done ? 'Hoàn thành lượt học! Đã nhớ ' + learned + ' từ.' : 'Đã nhớ ' + learned + ' / ' + initialCount + ' · Còn ' + queue.length + ' thẻ';
     if (done) return;
+    preparedAudio(current.word);
     $('cardSide').hidden = false; $('cardHint').hidden = false; $('cardWord').hidden = false;
     $('cardSide').textContent = 'TỪ TIẾNG ANH'; $('cardWord').textContent = current.word;
     $('cardMeaning').textContent = ''; $('cardHint').textContent = 'Bấm thẻ hoặc nhấn Enter để xem nghĩa';
