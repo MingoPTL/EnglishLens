@@ -19,6 +19,60 @@
     try { localStorage.setItem(KEY, JSON.stringify(next)); words = next; return true; }
     catch { notice('Không lưu được. Bộ nhớ trình duyệt có thể đầy hoặc bị chặn; thay đổi chưa được lưu.'); return false; }
   }
+  const STUDY_KEY = 'englishlens.study.v1';
+  let session = null, history = [], studyReady = true;
+  function validSession(s) {
+    return s && typeof s.startedAt === 'string' && Number.isFinite(Date.parse(s.startedAt)) &&
+      ['initialCount', 'learned', 'again', 'removed'].every(k => Number.isInteger(s[k]) && s[k] >= 0) &&
+      Array.isArray(s.queue) && s.queue.every(w => typeof w === 'string') &&
+      new Set(s.queue).size === s.queue.length && s.learned + s.removed + s.queue.length === s.initialCount;
+  }
+  try {
+    const raw = localStorage.getItem(STUDY_KEY);
+    if (raw !== null) {
+      const data = JSON.parse(raw);
+      if (!data || (data.session !== null && !validSession(data.session)) || !Array.isArray(data.history) ||
+          data.history.some(s => !validSession(s) || s.queue.length || !Number.isFinite(Date.parse(s.completedAt)))) throw new Error('Invalid study data');
+      session = data.session; history = data.history.slice(0, 30);
+    }
+  } catch {
+    studyReady = false;
+    notice('Không đọc được tiến độ học. Dữ liệu cũ được giữ nguyên; chưa thể lưu lượt học mới.');
+  }
+  function renderHistory() {
+    $('startStudy').textContent = session ? 'Tiếp tục học ↗' : 'Học flashcard ↗';
+    $('studySaved').textContent = session ? 'Lượt đang học: đã nhớ ' + session.learned + ' / ' + session.initialCount + ' · Còn ' + session.queue.length + ' thẻ.' : 'Chưa có lượt học đang dở.';
+    const list = $('studyHistory'); list.replaceChildren();
+    if (!history.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Chưa có lượt học hoàn thành.'; list.append(p); }
+    history.forEach(s => {
+      const p = document.createElement('p');
+      p.textContent = new Date(s.completedAt).toLocaleString('vi-VN') + ' · Đã nhớ ' + s.learned + ' / ' + s.initialCount + ' từ · Học lại ' + s.again + ' lần' + (s.removed ? ' · Đã xóa ' + s.removed + ' từ' : '');
+      list.append(p);
+    });
+  }
+  function saveStudy() {
+    if (session) {
+      session.queue = [...queue]; session.learned = learned;
+      if (!queue.length) {
+        history.unshift({...session, completedAt: new Date().toISOString()});
+        history = history.slice(0, 30); session = null;
+      }
+    }
+    let saved = false;
+    try {
+      if (!studyReady) throw new Error('Storage unavailable');
+      localStorage.setItem(STUDY_KEY, JSON.stringify({session, history})); saved = true;
+    } catch { notice('Chưa lưu được tiến độ học. Kiểm tra quyền hoặc dung lượng lưu trữ của trình duyệt.'); }
+    renderHistory();
+    if (!saved) $('studySaved').textContent = 'Tiến độ hiện tại chưa lưu được; đóng trang có thể mất lượt học này.';
+  }
+  function reconcileStudy() {
+    if (!session) return;
+    queue = session.queue.filter(word => words.some(w => w.word === word));
+    session.removed += session.queue.length - queue.length;
+    initialCount = session.initialCount; learned = session.learned;
+    saveStudy();
+  }
   function button(text, action) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'textButton'; b.textContent = text; b.onclick = action; return b;
   }
@@ -132,7 +186,7 @@
         if (!confirm('Xóa “' + w.word + '” khỏi bộ từ vựng?')) return;
         if (!persist(words.filter(item => item.word !== w.word))) return;
         if (editing === w.word) resetForm();
-        queue = queue.filter(word => word !== w.word);
+        reconcileStudy();
         renderList(); if (!$('studyPanel').hidden) renderCard();
         notice('Đã xóa “' + w.word + '”.');
       }));
@@ -176,16 +230,23 @@
     $('cardMeaning').textContent = ''; $('cardHint').textContent = 'Bấm thẻ hoặc nhấn Enter để xem nghĩa';
     $('flashcard').classList.remove('flipped'); $('flashcard').setAttribute('aria-label', current.word + '. Lật thẻ để xem nghĩa');
   }
-  function beginStudy() {
+  function beginStudy(restart = false) {
     if (!words.length) return;
     stopAI(); if (pronunciation) pronunciation.pause();
-    queue = words.map(w => w.word);
-    for (let i = queue.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [queue[i], queue[j]] = [queue[j], queue[i]]; }
-    initialCount = queue.length; learned = 0; $('studyPanel').hidden = false; renderCard();
+    if (session && !restart) {
+      reconcileStudy();
+    } else {
+      queue = words.map(w => w.word);
+      for (let i = queue.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [queue[i], queue[j]] = [queue[j], queue[i]]; }
+      initialCount = queue.length; learned = 0;
+      session = {startedAt: new Date().toISOString(), initialCount, learned, again: 0, removed: 0, queue: [...queue]};
+      saveStudy();
+    }
+    $('studyPanel').hidden = false; renderCard();
     $('flashcard').focus();
   }
-  $('startStudy').onclick = beginStudy; $('restartStudy').onclick = beginStudy;
-  $('closeStudy').onclick = () => { stopSpeech(); $('studyPanel').hidden = true; queue = []; $('startStudy').focus(); };
+  $('startStudy').onclick = () => beginStudy(); $('restartStudy').onclick = () => beginStudy(true);
+  $('closeStudy').onclick = () => { stopSpeech(); $('studyPanel').hidden = true; $('startStudy').focus(); };
   $('flashcard').onclick = () => {
     const current = words.find(w => w.word === queue[0]); if (!current) return;
     flipped = !flipped; $('flashcard').classList.toggle('flipped', flipped);
@@ -199,8 +260,11 @@
   function grade(known) {
     if (!flipped || !queue.length) return;
     const word = queue.shift(); if (known) learned++; else queue.push(word);
+    if (session && !known) session.again++;
+    saveStudy();
     renderCard(); (queue.length ? $('flashcard') : $('restartStudy')).focus();
   }
   $('cardAgain').onclick = () => grade(false); $('cardKnown').onclick = () => grade(true);
   renderList();
+  reconcileStudy(); renderHistory();
 })();
