@@ -103,7 +103,8 @@ Chạy `.\.venv-ram\Scripts\python.exe -m unittest discover -s tests -v` để k
 - Chọn một vật thể trong kết quả nhận diện, bấm **Thêm vào bộ từ vựng**. Ứng dụng dùng Argos Translate trên máy để dịch nghĩa tiếng Việt và Free Dictionary API để lấy định nghĩa, phiên âm, câu ví dụ. Có thể sửa nghĩa/ghi chú tiếng Việt sau đó.
 - Trong **Bộ từ vựng của tôi**, có thể tự thêm từ, tìm kiếm, sửa nghĩa, nghe phát âm hoặc xóa từ. Từ trùng được nhận biết không phân biệt chữ hoa/thường và khoảng trắng thừa.
 - Bấm **Học flashcard** để bắt đầu lượt học với thứ tự ngẫu nhiên. Bấm thẻ (hoặc Enter khi thẻ được chọn) để xem nghĩa. **Học lại** đưa thẻ về cuối lượt; **Đã nhớ** bỏ thẻ khỏi lượt hiện tại. Có thể học lại toàn bộ khi hoàn thành.
-- Bộ từ lưu trong localStorage của trình duyệt tại địa chỉ ứng dụng. Dùng cùng trình duyệt và địa chỉ `http://127.0.0.1:7860` để xem lại. Xóa dữ liệu trang hoặc dùng hồ sơ/trình duyệt khác sẽ không giữ cùng bộ từ. Tiến độ flashcard chỉ tính trong lượt học hiện tại.
+- Bộ từ, tiến độ flashcard và lịch sử học lưu trong localStorage của trình duyệt tại địa chỉ ứng dụng. Dùng cùng trình duyệt và địa chỉ `http://127.0.0.1:7860` để xem lại. Xóa dữ liệu trang hoặc dùng hồ sơ/trình duyệt khác sẽ không giữ cùng dữ liệu.
+- Tiến độ được lưu sau mỗi lần bấm **Đã nhớ** hoặc **Học lại**. Đóng ôn tập hoặc đóng trang rồi mở lại, bấm **Tiếp tục học** để tiếp tục đúng thẻ đang dở. Mục **Lịch sử học flashcard** giữ 30 lượt hoàn thành gần nhất, gồm thời điểm, số từ đã nhớ và số lần học lại. Từ bị xóa khỏi bộ từ cũng được bỏ khỏi lượt học đang dở.
 - Flashcard và ghi chú đã lưu dùng được khi mất mạng. Phát âm ưu tiên audio từ Free Dictionary API; khi audio thiếu hoặc lỗi, dùng giọng tiếng Anh của trình duyệt/hệ điều hành.
 
 ## Lật ngang camera
@@ -118,6 +119,8 @@ Cần Node.js và Microsoft Edge. Khi máy chủ ứng dụng đang chạy, th�
 npm install --prefix .cache/ui-tests --no-audit --no-fund playwright
 node tests/vocabulary.browser.cjs
 ```
+
+Kiểm thử riêng phần âm thanh và tiến độ học (không cần chạy máy chủ): `node tests/study.browser.cjs`. Cần gói `playwright` trong đường dẫn module Node.js (hoặc đặt `NODE_PATH` đến thư mục `node_modules` đã cài).
 
 Kiểm thử dùng hồ sơ trình duyệt tạm, không sửa bộ từ đang dùng. Bao gồm lưu qua tải lại trang, chống trùng, sửa/xóa/tìm từ, thêm từ nhận diện, flashcard, pixel ảnh lật và bố cục di động. Ảnh kiểm tra giao diện nằm trong `outputs/vocabulary-desktop.png` và `outputs/vocabulary-mobile.png`.
 
